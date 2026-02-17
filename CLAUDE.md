@@ -81,6 +81,7 @@ servicemap/
 - Branch naming: `feat/short-description`, `fix/short-description`
 - Commit messages: imperative mood, max 72 chars. e.g., `Add YAML validation for connection ports`
 - One logical change per commit. Don't bundle unrelated changes.
+- Do NOT add `Co-Authored-By` lines to commit messages.
 
 ## Key Files
 - `src/lib/db/schema.ts` — Drizzle schema (source of truth for data model)
