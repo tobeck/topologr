@@ -92,14 +92,14 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
         defs
           .append("marker")
           .attr("id", `arrow-${crit}`)
-          .attr("viewBox", "0 -5 10 10")
-          .attr("refX", NODE_RADIUS + 12)
+          .attr("viewBox", "0 -3 6 6")
+          .attr("refX", NODE_RADIUS + 8)
           .attr("refY", 0)
-          .attr("markerWidth", 8)
-          .attr("markerHeight", 8)
+          .attr("markerWidth", 5)
+          .attr("markerHeight", 5)
           .attr("orient", "auto")
           .append("path")
-          .attr("d", "M0,-5L10,0L0,5")
+          .attr("d", "M0,-3L6,0L0,3")
           .attr("fill", CRITICALITY_COLORS[crit]);
       });
 
@@ -147,6 +147,19 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
         .on("click", (_event, d) => {
           onEdgeClick?.(d as GraphEdge);
         });
+
+      // Port labels on edges
+      const edgeLabelGroup = g.append("g").attr("class", "edge-labels");
+      const edgeLabelElements = edgeLabelGroup
+        .selectAll("text")
+        .data(edges.filter((e) => e.port != null))
+        .join("text")
+        .text((d) => `:${d.port}`)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "9px")
+        .attr("font-family", "monospace")
+        .attr("fill", "#6b7280")
+        .attr("pointer-events", "none");
 
       // Draw nodes
       const nodeGroup = g.append("g").attr("class", "nodes");
@@ -271,6 +284,10 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
 
         nodeElements.attr("transform", (d) => `translate(${d.x},${d.y})`);
 
+        edgeLabelElements
+          .attr("x", (d) => ((d.source as SimNode).x! + (d.target as SimNode).x!) / 2)
+          .attr("y", (d) => ((d.source as SimNode).y! + (d.target as SimNode).y!) / 2 - 4);
+
         labelGroup
           .selectAll<SVGTextElement, SimNode>("text")
           .attr("x", (d) => d.x!)
@@ -310,6 +327,7 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
         // Reset all opacities
         svg.selectAll(".nodes g").attr("opacity", 1);
         svg.selectAll(".edges line").attr("opacity", 1);
+        svg.selectAll(".edge-labels text").attr("opacity", 1);
         svg.selectAll(".labels text").attr("opacity", 1);
         return;
       }
@@ -323,6 +341,14 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
 
       // Dim unaffected edges
       svg.selectAll<SVGLineElement, SimEdge>(".edges line")
+        .attr("opacity", (d) => {
+          const srcId = typeof d.source === "string" ? d.source : d.source.id;
+          const tgtId = typeof d.target === "string" ? d.target : d.target.id;
+          return affected.has(srcId) && affected.has(tgtId) ? 1 : 0.15;
+        });
+
+      // Dim unaffected edge labels
+      svg.selectAll<SVGTextElement, SimEdge>(".edge-labels text")
         .attr("opacity", (d) => {
           const srcId = typeof d.source === "string" ? d.source : d.source.id;
           const tgtId = typeof d.target === "string" ? d.target : d.target.id;

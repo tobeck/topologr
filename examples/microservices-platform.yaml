@@ -1,0 +1,147 @@
+# Microservices e-commerce platform
+# A different topology for testing — API gateway pattern with search and CDN
+
+services:
+  - id: api-gateway
+    name: API Gateway
+    type: service
+    tier: critical
+    owner: platform-team
+    tags: [gateway, kong, rate-limiting]
+    repository: https://github.com/example/api-gateway
+    documentation: https://docs.example.com/gateway
+    description: Central ingress point with rate limiting and auth verification
+    metadata:
+      runtime: node
+      replicas: 3
+
+  - id: user-api
+    name: User API
+    type: service
+    tier: high
+    owner: identity-team
+    tags: [users, accounts, profiles]
+    repository: https://github.com/example/user-api
+    documentation: https://docs.example.com/user-api
+    description: User registration, profiles, and account management
+    metadata:
+      runtime: go
+      replicas: 2
+
+  - id: product-api
+    name: Product API
+    type: service
+    tier: high
+    owner: catalog-team
+    tags: [products, catalog, inventory]
+    repository: https://github.com/example/product-api
+    description: Product catalog and inventory management
+
+  - id: search-api
+    name: Search API
+    type: service
+    tier: medium
+    owner: catalog-team
+    tags: [search, fulltext]
+    description: Full-text product search powered by Elasticsearch
+    metadata:
+      runtime: python
+      framework: fastapi
+
+  - id: postgres
+    name: PostgreSQL
+    type: database
+    tier: critical
+    owner: dba-team
+    tags: [database, relational, primary]
+    documentation: https://docs.example.com/databases/postgres
+    description: Primary relational store for users and products
+
+  - id: elasticsearch
+    name: Elasticsearch
+    type: storage
+    tier: medium
+    owner: dba-team
+    tags: [search, indexing]
+    description: Full-text search index synced from product catalog
+
+  - id: cdn
+    name: CDN
+    type: cdn
+    tier: high
+    owner: platform-team
+    tags: [cdn, static-assets, images]
+    description: Edge CDN for product images and static assets
+    metadata:
+      provider: cloudflare
+      regions: [us-east, eu-west, ap-south]
+
+connections:
+  - source: api-gateway
+    target: user-api
+    protocol: grpc
+    port: 9090
+    criticality: high
+    sla_target_ms: 80
+    sla_uptime_percent: 99.9
+    auth_method: mtls
+    description: User profile lookups and auth verification
+
+  - source: api-gateway
+    target: product-api
+    protocol: grpc
+    port: 9091
+    criticality: high
+    sla_target_ms: 100
+    sla_uptime_percent: 99.9
+    auth_method: mtls
+
+  - source: api-gateway
+    target: search-api
+    protocol: http
+    port: 8000
+    criticality: medium
+    sla_target_ms: 200
+    auth_method: api_key
+    description: Proxied search requests from frontend
+
+  - source: user-api
+    target: postgres
+    protocol: postgres
+    port: 5432
+    criticality: critical
+    sla_target_ms: 15
+    sla_uptime_percent: 99.99
+
+  - source: product-api
+    target: postgres
+    protocol: postgres
+    port: 5432
+    criticality: high
+    sla_target_ms: 20
+    sla_uptime_percent: 99.95
+
+  - source: product-api
+    target: elasticsearch
+    protocol: http
+    port: 9200
+    criticality: medium
+    sla_target_ms: 50
+    is_async: true
+    description: Async index updates on product changes
+
+  - source: product-api
+    target: cdn
+    protocol: https
+    port: 443
+    criticality: medium
+    sla_target_ms: 300
+    description: Image upload and cache invalidation
+
+  - source: search-api
+    target: elasticsearch
+    protocol: http
+    port: 9200
+    criticality: medium
+    sla_target_ms: 100
+    description: Full-text search queries

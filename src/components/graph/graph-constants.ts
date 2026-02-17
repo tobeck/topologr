@@ -10,10 +10,10 @@ export const CRITICALITY_COLORS: Record<Criticality, string> = {
 };
 
 export const EDGE_WIDTH: Record<Criticality, number> = {
-  critical: 4,
-  high: 3,
-  medium: 2,
-  low: 1.5,
+  critical: 2,
+  high: 1.5,
+  medium: 1,
+  low: 0.75,
 };
 
 export const NODE_COLORS: Record<ServiceType, string> = {

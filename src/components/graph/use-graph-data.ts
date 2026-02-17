@@ -99,8 +99,11 @@ export function useGraphData(): UseGraphDataReturn {
       const servicesBody = await servicesRes.json();
       const connectionsBody = await connectionsRes.json();
 
-      const nodes = mapServicesToNodes(servicesBody.data);
-      const edges = mapConnectionsToEdges(connectionsBody.data);
+      const servicesData = Array.isArray(servicesBody) ? servicesBody : servicesBody.data;
+      const connectionsData = Array.isArray(connectionsBody) ? connectionsBody : connectionsBody.data;
+
+      const nodes = mapServicesToNodes(servicesData);
+      const edges = mapConnectionsToEdges(connectionsData);
 
       setGraph({ nodes, edges });
     } catch (err) {
