@@ -1,0 +1,167 @@
+# Example ServiceMap definition
+# This models a typical web application stack
+
+services:
+  - id: web-frontend
+    name: Web Frontend
+    type: service
+    tier: critical
+    owner: frontend-team
+    tags: [react, user-facing]
+    repository: https://github.com/example/web-frontend
+    description: Customer-facing React SPA
+
+  - id: api-gateway
+    name: API Gateway
+    type: service
+    tier: critical
+    owner: platform-team
+    tags: [gateway, nginx]
+    description: Reverse proxy and rate limiter
+
+  - id: auth-service
+    name: Auth Service
+    type: service
+    tier: critical
+    owner: platform-team
+    tags: [auth, core]
+    description: Handles authentication and JWT token issuance
+
+  - id: user-service
+    name: User Service
+    type: service
+    tier: high
+    owner: backend-team
+    tags: [users, core]
+
+  - id: order-service
+    name: Order Service
+    type: service
+    tier: high
+    owner: backend-team
+    tags: [orders, commerce]
+
+  - id: notification-service
+    name: Notification Service
+    type: service
+    tier: medium
+    owner: backend-team
+    tags: [notifications, email, sms]
+
+  - id: postgres-primary
+    name: PostgreSQL Primary
+    type: database
+    tier: critical
+    owner: dba-team
+    tags: [database, postgres]
+
+  - id: redis-cache
+    name: Redis Cache
+    type: cache
+    tier: high
+    owner: platform-team
+    tags: [cache, sessions]
+
+  - id: rabbitmq
+    name: RabbitMQ
+    type: queue
+    tier: high
+    owner: platform-team
+    tags: [messaging, async]
+
+  - id: stripe-api
+    name: Stripe API
+    type: external
+    tier: high
+    owner: backend-team
+    tags: [payments, external]
+
+connections:
+  - source: web-frontend
+    target: api-gateway
+    protocol: https
+    port: 443
+    criticality: critical
+    sla_target_ms: 200
+    sla_uptime_percent: 99.95
+    auth_method: jwt
+
+  - source: api-gateway
+    target: auth-service
+    protocol: http
+    port: 8080
+    criticality: critical
+    sla_target_ms: 50
+    sla_uptime_percent: 99.99
+    auth_method: mtls
+
+  - source: api-gateway
+    target: user-service
+    protocol: http
+    port: 8081
+    criticality: high
+    sla_target_ms: 100
+    auth_method: mtls
+
+  - source: api-gateway
+    target: order-service
+    protocol: http
+    port: 8082
+    criticality: high
+    sla_target_ms: 150
+    auth_method: mtls
+
+  - source: auth-service
+    target: postgres-primary
+    protocol: postgres
+    port: 5432
+    criticality: critical
+    sla_target_ms: 10
+    sla_uptime_percent: 99.99
+
+  - source: auth-service
+    target: redis-cache
+    protocol: redis
+    port: 6379
+    criticality: high
+    sla_target_ms: 5
+    description: Session token cache
+
+  - source: user-service
+    target: postgres-primary
+    protocol: postgres
+    port: 5432
+    criticality: high
+    sla_target_ms: 20
+
+  - source: order-service
+    target: postgres-primary
+    protocol: postgres
+    port: 5432
+    criticality: high
+    sla_target_ms: 20
+
+  - source: order-service
+    target: stripe-api
+    protocol: https
+    port: 443
+    criticality: high
+    sla_target_ms: 500
+    auth_method: api_key
+    description: Payment processing
+
+  - source: order-service
+    target: rabbitmq
+    protocol: amqp
+    port: 5672
+    criticality: medium
+    is_async: true
+    description: Order confirmation events
+
+  - source: notification-service
+    target: rabbitmq
+    protocol: amqp
+    port: 5672
+    criticality: medium
+    is_async: true
+    description: Consumes order events for email/SMS
