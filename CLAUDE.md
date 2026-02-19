@@ -76,6 +76,7 @@ servicemap/
 - Use Vitest for unit/integration. Playwright for E2E.
 - Test the YAML parser exhaustively—it's the primary user input surface.
 - Don't mock DB in integration tests. Use an in-memory SQLite instance.
+- Always run `npm run test` after making changes to verify nothing is broken.
 
 ## Git Workflow
 - Branch naming: `feat/short-description`, `fix/short-description`

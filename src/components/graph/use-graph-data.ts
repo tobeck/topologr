@@ -54,6 +54,9 @@ export function mapServicesToNodes(services: ApiService[]): GraphNode[] {
     type: s.type,
     tier: s.tier,
     owner: s.owner ?? undefined,
+    repository: s.repository ?? undefined,
+    documentation: s.documentation ?? undefined,
+    description: s.description ?? undefined,
     tags: s.tags ?? [],
   }));
 }

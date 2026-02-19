@@ -39,6 +39,9 @@ describe("mapServicesToNodes", () => {
       type: "service",
       tier: "critical",
       owner: "platform-team",
+      repository: "https://github.com/org/auth",
+      documentation: "https://docs.internal/auth",
+      description: "Handles authentication",
       tags: ["auth", "core"],
     });
     expect(nodes[1]).toEqual({
@@ -47,6 +50,9 @@ describe("mapServicesToNodes", () => {
       type: "database",
       tier: "high",
       owner: undefined,
+      repository: undefined,
+      documentation: undefined,
+      description: undefined,
       tags: [],
     });
   });

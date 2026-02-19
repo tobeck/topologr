@@ -43,6 +43,42 @@ export function NodeDetail({ node, edges, onAnalyzeImpact }: NodeDetailProps) {
         <Badge variant="outline">{SERVICE_TYPE_LABELS[node.type]}</Badge>
       </div>
 
+      {node.description && (
+        <p className="text-sm text-muted-foreground">{node.description}</p>
+      )}
+
+      {(node.repository || node.documentation) && (
+        <div>
+          <p className="text-xs text-muted-foreground mb-1">Links</p>
+          <div className="flex flex-col gap-1">
+            {node.repository && (
+              <a
+                href={node.repository}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+              >
+                <GitBranch className="h-3 w-3" />
+                Repository
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+            {node.documentation && (
+              <a
+                href={node.documentation}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+              >
+                <FileText className="h-3 w-3" />
+                Documentation
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+
       {node.owner && (
         <div>
           <p className="text-xs text-muted-foreground">Owner</p>

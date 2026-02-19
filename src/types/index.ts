@@ -57,6 +57,9 @@ export interface GraphNode {
   type: ServiceType;
   tier: Criticality;
   owner?: string;
+  repository?: string;
+  documentation?: string;
+  description?: string;
   tags: string[];
   // D3 force simulation fields (mutable)
   x?: number;
