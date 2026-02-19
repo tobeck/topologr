@@ -79,7 +79,7 @@ export default function GraphPage() {
 
   if (error) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <p className="text-destructive mb-2">{error}</p>
           <button
@@ -95,7 +95,7 @@ export default function GraphPage() {
 
   if (isLoading || !graph) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted-foreground/20 border-t-primary" />
           <p className="text-sm text-muted-foreground">Loading services...</p>
@@ -106,7 +106,7 @@ export default function GraphPage() {
 
   if (graph.nodes.length === 0) {
     return (
-      <div className="flex h-screen items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <div className="text-center">
           <p className="text-muted-foreground mb-2">
             No services found. Import a YAML file to get started.
@@ -120,7 +120,7 @@ export default function GraphPage() {
   }
 
   return (
-    <div className="h-screen w-full relative overflow-hidden">
+    <div className="h-full w-full relative overflow-hidden">
       {isImpactMode && (
         <div className="absolute top-4 left-4 z-10 bg-destructive/10 border border-destructive/30 rounded-md px-3 py-1.5 text-sm text-destructive">
           Impact mode — click a node to analyze blast radius

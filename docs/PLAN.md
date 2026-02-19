@@ -1,28 +1,28 @@
 # ServiceMap — Current Plan
 
 ## MVP Phase 1: Core Engine
-- [ ] YAML parser with Zod validation
-- [ ] SQLite schema via Drizzle
-- [ ] Import API endpoint (POST /api/import)
-- [ ] Services CRUD API
-- [ ] Connections CRUD API
-- [ ] Impact analysis API (GET /api/impact/:serviceId)
+- [x] YAML parser with Zod validation
+- [x] SQLite schema via Drizzle
+- [x] Import API endpoint (POST /api/import)
+- [x] Services CRUD API
+- [x] Connections CRUD API
+- [x] Impact analysis API (GET /api/impact/:serviceId)
 
 ## MVP Phase 2: Visualization
-- [ ] D3 force-directed graph component
-- [ ] Node styling by service type (icons/shapes)
-- [ ] Edge styling by criticality (color/thickness)
-- [ ] Click node → detail panel (SLAs, metadata, connections)
-- [ ] Click edge → connection detail
-- [ ] Zoom/pan controls
-- [ ] Impact highlight mode (select node → show blast radius)
+- [x] D3 force-directed graph component
+- [x] Node styling by service type (icons/shapes)
+- [x] Edge styling by criticality (color/thickness)
+- [x] Click node → detail panel (SLAs, metadata, connections)
+- [x] Click edge → connection detail
+- [x] Zoom/pan controls
+- [x] Impact highlight mode (select node → show blast radius)
 
 ## MVP Phase 3: UI Shell
-- [ ] Dashboard layout with sidebar
-- [ ] YAML import page (paste or file upload)
-- [ ] Service list/table view
-- [ ] Search/filter services
-- [ ] Example YAML download
+- [x] Dashboard layout with sidebar
+- [x] YAML import page (paste or file upload)
+- [x] Service list/table view
+- [x] Search/filter services
+- [x] Example YAML download
 
 ## Post-MVP
 - [ ] YAML export (DB → YAML)

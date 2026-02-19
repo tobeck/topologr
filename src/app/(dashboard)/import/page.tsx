@@ -12,7 +12,6 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import Link from "next/link";
 
 const EXAMPLE_YAML = `# Example: Web Application Stack
 services:
@@ -186,20 +185,15 @@ export default function ImportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 sm:p-8">
+    <div className="p-4 sm:p-8">
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Import Services
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Upload a YAML file or paste a service definition to import.
-            </p>
-          </div>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/graph">View Graph</Link>
-          </Button>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Import Services
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Upload a YAML file or paste a service definition to import.
+          </p>
         </div>
 
         <Card>
