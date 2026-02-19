@@ -6,6 +6,7 @@ import {
   useImperativeHandle,
   forwardRef,
   useCallback,
+  type MutableRefObject,
 } from "react";
 import * as d3 from "d3";
 import type { GraphNode, GraphEdge, ServiceGraph, ImpactResult } from "@/types";
@@ -42,6 +43,12 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
     const containerRef = useRef<HTMLDivElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
     const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown>>(null);
+
+    // Store callbacks in refs so graph doesn't re-render when they change
+    const onNodeClickRef = useRef(onNodeClick) as MutableRefObject<typeof onNodeClick>;
+    const onEdgeClickRef = useRef(onEdgeClick) as MutableRefObject<typeof onEdgeClick>;
+    onNodeClickRef.current = onNodeClick;
+    onEdgeClickRef.current = onEdgeClick;
 
     useImperativeHandle(ref, () => ({
       zoomIn() {
@@ -145,7 +152,7 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
         .attr("marker-end", (d) => `url(#arrow-${d.criticality})`)
         .attr("cursor", "pointer")
         .on("click", (_event, d) => {
-          onEdgeClick?.(d as GraphEdge);
+          onEdgeClickRef.current?.(d as GraphEdge);
         });
 
       // Port labels on edges
@@ -169,7 +176,7 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
         .join("g")
         .attr("cursor", "pointer")
         .on("click", (_event, d) => {
-          onNodeClick?.(d as GraphNode);
+          onNodeClickRef.current?.(d as GraphNode);
         });
 
       // Add shapes per type
@@ -241,38 +248,47 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
         .attr("fill", "#374151")
         .attr("pointer-events", "none");
 
-      // Drag behavior
-      let isDragging = false;
+      // Drag behavior — only activate after mouse moves beyond threshold
+      let hasDragged = false;
+      let dragStartX = 0;
+      let dragStartY = 0;
+      const DRAG_THRESHOLD = 4;
 
       const drag = d3
         .drag<SVGGElement, SimNode>()
         .on("start", (event, d) => {
-          isDragging = true;
-          if (!event.active) simulation.alphaTarget(0.3).restart();
+          hasDragged = false;
+          dragStartX = event.x;
+          dragStartY = event.y;
           d.fx = d.x;
           d.fy = d.y;
         })
         .on("drag", (event, d) => {
-          d.fx = event.x;
-          d.fy = event.y;
+          const dx = event.x - dragStartX;
+          const dy = event.y - dragStartY;
+          if (!hasDragged && dx * dx + dy * dy > DRAG_THRESHOLD * DRAG_THRESHOLD) {
+            hasDragged = true;
+            if (!event.active) simulation.alphaTarget(0.1).restart();
+          }
+          if (hasDragged) {
+            d.fx = event.x;
+            d.fy = event.y;
+          }
         })
         .on("end", (event, d) => {
           if (!event.active) simulation.alphaTarget(0);
-          d.fx = null;
-          d.fy = null;
-          setTimeout(() => {
-            isDragging = false;
-          }, 50);
+          if (!hasDragged) {
+            d.fx = null;
+            d.fy = null;
+            onNodeClickRef.current?.(d as GraphNode);
+          } else {
+            // Keep node pinned where it was dropped
+            d.fx = event.x;
+            d.fy = event.y;
+          }
         });
 
       nodeElements.call(drag);
-
-      // Suppress click during drag
-      nodeElements.on("click", (_event, d) => {
-        if (!isDragging) {
-          onNodeClick?.(d as GraphNode);
-        }
-      });
 
       // Tick
       simulation.on("tick", () => {
@@ -297,7 +313,7 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
       return () => {
         simulation.stop();
       };
-    }, [graph, onNodeClick, onEdgeClick]);
+    }, [graph]);
 
     // Main render effect
     useEffect(() => {
