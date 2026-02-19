@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useServices } from "@/components/services/use-services";
+import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useServices, type ApiService } from "@/components/services/use-services";
+import { useConnections } from "@/components/services/use-connections";
 import { ServiceTable } from "@/components/services/ServiceTable";
 import { ServiceFilters, type Filters } from "@/components/services/ServiceFilters";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { NodeDetail } from "@/components/graph/NodeDetail";
+import type { GraphNode, GraphEdge } from "@/types";
 
 const INITIAL_FILTERS: Filters = {
   search: "",
@@ -12,9 +23,26 @@ const INITIAL_FILTERS: Filters = {
   owner: "",
 };
 
+function toGraphNode(service: ApiService): GraphNode {
+  return {
+    id: service.id,
+    name: service.name,
+    type: service.type,
+    tier: service.tier,
+    owner: service.owner ?? undefined,
+    repository: service.repository ?? undefined,
+    documentation: service.documentation ?? undefined,
+    description: service.description ?? undefined,
+    tags: service.tags,
+  };
+}
+
 export default function ServicesPage() {
   const { services, isLoading, error, refetch } = useServices();
+  const { connections } = useConnections();
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
+  const [selectedService, setSelectedService] = useState<ApiService | null>(null);
+  const router = useRouter();
 
   const owners = useMemo(() => {
     const set = new Set<string>();
@@ -35,6 +63,29 @@ export default function ServicesPage() {
       return true;
     });
   }, [services, filters]);
+
+  const graphEdges: GraphEdge[] = useMemo(() => {
+    return connections.map((c) => ({
+      id: c.id,
+      source: c.sourceId,
+      target: c.targetId,
+      label: c.label ?? undefined,
+      protocol: c.protocol,
+      port: c.port ?? undefined,
+      criticality: c.criticality,
+      slaTargetMs: c.slaTargetMs ?? undefined,
+      slaUptimePercent: c.slaUptimePercent ?? undefined,
+      authMethod: c.authMethod ?? undefined,
+      isAsync: c.isAsync,
+    }));
+  }, [connections]);
+
+  const handleAnalyzeImpact = useCallback(
+    (nodeId: string) => {
+      router.push(`/graph?analyze=${encodeURIComponent(nodeId)}`);
+    },
+    [router],
+  );
 
   if (error) {
     return (
@@ -75,6 +126,8 @@ export default function ServicesPage() {
     );
   }
 
+  const selectedNode = selectedService ? toGraphNode(selectedService) : null;
+
   return (
     <div className="p-4 sm:p-8 space-y-4">
       <div>
@@ -85,7 +138,28 @@ export default function ServicesPage() {
       </div>
 
       <ServiceFilters filters={filters} owners={owners} onChange={setFilters} />
-      <ServiceTable services={filtered} />
+      <ServiceTable services={filtered} onSelectService={setSelectedService} />
+
+      <Sheet
+        open={!!selectedService}
+        onOpenChange={(isOpen) => !isOpen && setSelectedService(null)}
+      >
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>{selectedNode?.name}</SheetTitle>
+            <SheetDescription>{selectedNode?.type} service</SheetDescription>
+          </SheetHeader>
+          <div className="mt-4">
+            {selectedNode && (
+              <NodeDetail
+                node={selectedNode}
+                edges={graphEdges}
+                onAnalyzeImpact={handleAnalyzeImpact}
+              />
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

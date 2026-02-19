@@ -14,9 +14,10 @@ const MAX_VISIBLE_TAGS = 3;
 
 interface ServiceTableProps {
   services: ApiService[];
+  onSelectService?: (service: ApiService) => void;
 }
 
-export function ServiceTable({ services }: ServiceTableProps) {
+export function ServiceTable({ services, onSelectService }: ServiceTableProps) {
   return (
     <div className="rounded-md border">
       <Table>
@@ -31,7 +32,11 @@ export function ServiceTable({ services }: ServiceTableProps) {
         </TableHeader>
         <TableBody>
           {services.map((service) => (
-            <TableRow key={service.id}>
+            <TableRow
+              key={service.id}
+              className={onSelectService ? "cursor-pointer hover:bg-muted/50" : undefined}
+              onClick={() => onSelectService?.(service)}
+            >
               <TableCell className="font-medium">{service.name}</TableCell>
               <TableCell>
                 <Badge
