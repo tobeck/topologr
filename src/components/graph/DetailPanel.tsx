@@ -1,6 +1,6 @@
 "use client";
 
-import type { GraphNode, GraphEdge } from "@/types";
+import type { GraphNode, GraphEdge, ImpactResult } from "@/types";
 import {
   Sheet,
   SheetContent,
@@ -18,6 +18,11 @@ interface DetailPanelProps {
   open: boolean;
   onClose: () => void;
   onAnalyzeImpact: (nodeId: string) => void;
+  impactResult?: ImpactResult | null;
+  isLoadingImpact?: boolean;
+  allNodes?: GraphNode[];
+  onInlineImpact?: (nodeId: string) => void;
+  onViewInGraph?: (nodeId: string) => void;
 }
 
 export function DetailPanel({
@@ -27,6 +32,11 @@ export function DetailPanel({
   open,
   onClose,
   onAnalyzeImpact,
+  impactResult,
+  isLoadingImpact,
+  allNodes,
+  onInlineImpact,
+  onViewInGraph,
 }: DetailPanelProps) {
   const title = selectedNode
     ? selectedNode.name
@@ -53,6 +63,11 @@ export function DetailPanel({
               node={selectedNode}
               edges={edges}
               onAnalyzeImpact={onAnalyzeImpact}
+              impactResult={impactResult}
+              isLoadingImpact={isLoadingImpact}
+              allNodes={allNodes}
+              onInlineImpact={onInlineImpact}
+              onViewInGraph={onViewInGraph}
             />
           )}
           {selectedEdge && <EdgeDetail edge={selectedEdge} />}

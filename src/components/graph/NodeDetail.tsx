@@ -1,9 +1,10 @@
 "use client";
 
-import type { GraphNode, GraphEdge } from "@/types";
+import type { GraphNode, GraphEdge, ImpactResult } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { ImpactSummary } from "@/components/impact/ImpactSummary";
 import {
   CRITICALITY_COLORS,
   SERVICE_TYPE_LABELS,
@@ -13,15 +14,31 @@ import {
   GitBranch,
   FileText,
   Target,
+  Eye,
+  Loader2,
 } from "lucide-react";
 
 interface NodeDetailProps {
   node: GraphNode;
   edges: GraphEdge[];
   onAnalyzeImpact: (nodeId: string) => void;
+  impactResult?: ImpactResult | null;
+  isLoadingImpact?: boolean;
+  allNodes?: GraphNode[];
+  onInlineImpact?: (nodeId: string) => void;
+  onViewInGraph?: (nodeId: string) => void;
 }
 
-export function NodeDetail({ node, edges, onAnalyzeImpact }: NodeDetailProps) {
+export function NodeDetail({
+  node,
+  edges,
+  onAnalyzeImpact,
+  impactResult,
+  isLoadingImpact,
+  allNodes,
+  onInlineImpact,
+  onViewInGraph,
+}: NodeDetailProps) {
   const inbound = edges.filter((e) => {
     const target = typeof e.target === "string" ? e.target : (e.target as GraphNode).id;
     return target === node.id;
@@ -151,15 +168,52 @@ export function NodeDetail({ node, edges, onAnalyzeImpact }: NodeDetailProps) {
 
       <Separator />
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full"
-        onClick={() => onAnalyzeImpact(node.id)}
-      >
-        <Target className="h-4 w-4 mr-2" />
-        Analyze Impact
-      </Button>
+      {onInlineImpact ? (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            disabled={isLoadingImpact}
+            onClick={() => onInlineImpact(node.id)}
+          >
+            {isLoadingImpact ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Target className="h-4 w-4 mr-2" />
+            )}
+            Analyze Impact
+          </Button>
+          {onViewInGraph && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => onViewInGraph(node.id)}
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View in Graph
+            </Button>
+          )}
+        </div>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => onAnalyzeImpact(node.id)}
+        >
+          <Target className="h-4 w-4 mr-2" />
+          Analyze Impact
+        </Button>
+      )}
+
+      {impactResult && allNodes && (
+        <div className="mt-3">
+          <Separator className="mb-3" />
+          <ImpactSummary impactResult={impactResult} nodes={allNodes} compact />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { ServiceGraphClient } from "@/components/graph/ServiceGraph.client";
 import { GraphControls } from "@/components/graph/GraphControls";
 import { DetailPanel } from "@/components/graph/DetailPanel";
+import { ImpactSummaryPanel } from "@/components/graph/ImpactSummaryPanel";
 import { useGraphData } from "@/components/graph/use-graph-data";
 import type { ServiceGraphHandle } from "@/components/graph/ServiceGraph";
 import type { GraphNode, GraphEdge, ImpactResult } from "@/types";
@@ -11,12 +13,34 @@ import type { GraphNode, GraphEdge, ImpactResult } from "@/types";
 export default function GraphPage() {
   const { graph, isLoading, error, refetch } = useGraphData();
   const graphRef = useRef<ServiceGraphHandle>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const hasAutoAnalyzed = useRef(false);
 
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const [selectedEdge, setSelectedEdge] = useState<GraphEdge | null>(null);
   const [impactResult, setImpactResult] = useState<ImpactResult | null>(null);
   const [isImpactMode, setIsImpactMode] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+
+  // Auto-trigger impact analysis from ?analyze= query param
+  useEffect(() => {
+    if (hasAutoAnalyzed.current || !graph || graph.nodes.length === 0) return;
+    const analyzeId = searchParams.get("analyze");
+    if (!analyzeId) return;
+
+    hasAutoAnalyzed.current = true;
+    router.replace("/graph", { scroll: false });
+
+    setIsImpactMode(true);
+    fetch(`/api/impact/${encodeURIComponent(analyzeId)}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch impact analysis");
+        return res.json();
+      })
+      .then((body) => setImpactResult(body))
+      .catch(() => setImpactResult(null));
+  }, [graph, searchParams, router]);
 
   const handleNodeClick = useCallback(
     async (node: GraphNode) => {
@@ -25,7 +49,7 @@ export default function GraphPage() {
           const res = await fetch(`/api/impact/${node.id}`);
           if (!res.ok) throw new Error("Failed to fetch impact analysis");
           const body = await res.json();
-          setImpactResult(body.data);
+          setImpactResult(body);
         } catch {
           setImpactResult(null);
         }
@@ -56,7 +80,7 @@ export default function GraphPage() {
       const res = await fetch(`/api/impact/${nodeId}`);
       if (!res.ok) throw new Error("Failed to fetch impact analysis");
       const body = await res.json();
-      setImpactResult(body.data);
+      setImpactResult(body);
     } catch {
       setImpactResult(null);
     }
@@ -75,6 +99,11 @@ export default function GraphPage() {
     setPanelOpen(false);
     setSelectedNode(null);
     setSelectedEdge(null);
+  }, []);
+
+  const handleExitImpact = useCallback(() => {
+    setIsImpactMode(false);
+    setImpactResult(null);
   }, []);
 
   if (error) {
@@ -121,10 +150,24 @@ export default function GraphPage() {
 
   return (
     <div className="h-full w-full relative overflow-hidden">
-      {isImpactMode && (
-        <div className="absolute top-4 left-4 z-10 bg-destructive/10 border border-destructive/30 rounded-md px-3 py-1.5 text-sm text-destructive">
-          Impact mode — click a node to analyze blast radius
+      {isImpactMode && !impactResult && (
+        <div className="absolute top-4 left-4 z-10 bg-destructive/10 border border-destructive/30 rounded-md px-3 py-1.5 text-sm text-destructive flex items-center gap-2">
+          Click a node to analyze blast radius
+          <button
+            className="text-destructive hover:underline text-xs font-medium"
+            onClick={handleExitImpact}
+          >
+            Cancel
+          </button>
         </div>
+      )}
+
+      {impactResult && (
+        <ImpactSummaryPanel
+          impactResult={impactResult}
+          nodes={graph.nodes}
+          onClose={handleExitImpact}
+        />
       )}
 
       <ServiceGraphClient

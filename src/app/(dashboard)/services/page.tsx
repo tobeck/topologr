@@ -14,7 +14,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { NodeDetail } from "@/components/graph/NodeDetail";
-import type { GraphNode, GraphEdge } from "@/types";
+import type { GraphNode, GraphEdge, ImpactResult } from "@/types";
 
 const INITIAL_FILTERS: Filters = {
   search: "",
@@ -42,6 +42,8 @@ export default function ServicesPage() {
   const { connections } = useConnections();
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [selectedService, setSelectedService] = useState<ApiService | null>(null);
+  const [inlineImpact, setInlineImpact] = useState<ImpactResult | null>(null);
+  const [isLoadingImpact, setIsLoadingImpact] = useState(false);
   const router = useRouter();
 
   const owners = useMemo(() => {
@@ -80,12 +82,34 @@ export default function ServicesPage() {
     }));
   }, [connections]);
 
-  const handleAnalyzeImpact = useCallback(
+  const handleViewInGraph = useCallback(
     (nodeId: string) => {
       router.push(`/graph?analyze=${encodeURIComponent(nodeId)}`);
     },
     [router],
   );
+
+  const handleInlineImpact = useCallback(async (nodeId: string) => {
+    setIsLoadingImpact(true);
+    try {
+      const res = await fetch(`/api/impact/${encodeURIComponent(nodeId)}`);
+      if (!res.ok) throw new Error("Failed to fetch impact analysis");
+      const body = await res.json();
+      setInlineImpact(body);
+    } catch {
+      setInlineImpact(null);
+    } finally {
+      setIsLoadingImpact(false);
+    }
+  }, []);
+
+  const handleSelectService = useCallback((service: ApiService | null) => {
+    setSelectedService(service);
+    setInlineImpact(null);
+    setIsLoadingImpact(false);
+  }, []);
+
+  const allNodes: GraphNode[] = useMemo(() => services.map(toGraphNode), [services]);
 
   if (error) {
     return (
@@ -138,11 +162,11 @@ export default function ServicesPage() {
       </div>
 
       <ServiceFilters filters={filters} owners={owners} onChange={setFilters} />
-      <ServiceTable services={filtered} onSelectService={setSelectedService} />
+      <ServiceTable services={filtered} onSelectService={handleSelectService} />
 
       <Sheet
         open={!!selectedService}
-        onOpenChange={(isOpen) => !isOpen && setSelectedService(null)}
+        onOpenChange={(isOpen) => !isOpen && handleSelectService(null)}
       >
         <SheetContent>
           <SheetHeader>
@@ -154,7 +178,12 @@ export default function ServicesPage() {
               <NodeDetail
                 node={selectedNode}
                 edges={graphEdges}
-                onAnalyzeImpact={handleAnalyzeImpact}
+                onAnalyzeImpact={handleViewInGraph}
+                impactResult={inlineImpact}
+                isLoadingImpact={isLoadingImpact}
+                allNodes={allNodes}
+                onInlineImpact={handleInlineImpact}
+                onViewInGraph={handleViewInGraph}
               />
             )}
           </div>
