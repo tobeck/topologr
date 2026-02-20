@@ -59,7 +59,7 @@ export function GraphControls({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant={isImpactMode ? "default" : "outline"}
+              variant={isImpactMode ? "destructive" : "outline"}
               size="icon"
               onClick={onToggleImpactMode}
             >

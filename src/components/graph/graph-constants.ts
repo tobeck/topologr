@@ -109,3 +109,17 @@ export const ALL_CRITICALITIES: Criticality[] = [
   "medium",
   "low",
 ];
+
+/** Colors by hop distance from impact source */
+export const HOP_COLORS: Record<number, string> = {
+  0: "#ef4444", // source — red
+  1: "#f97316", // hop 1 — orange
+  2: "#eab308", // hop 2 — yellow
+};
+export const HOP_COLOR_DEFAULT = "#6b7280"; // hop 3+ — gray
+
+export const IMPACT_DIM_OPACITY = 0.1;
+
+export function getHopColor(hop: number): string {
+  return HOP_COLORS[hop] ?? HOP_COLOR_DEFAULT;
+}

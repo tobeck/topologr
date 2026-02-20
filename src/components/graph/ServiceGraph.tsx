@@ -17,6 +17,8 @@ import {
   EDGE_WIDTH,
   TIER_STROKE,
   nodeShapePath,
+  IMPACT_DIM_OPACITY,
+  getHopColor,
 } from "./graph-constants";
 
 export interface ServiceGraphHandle {
@@ -93,6 +95,28 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
 
       // Arrow marker definitions
       const defs = svg.append("defs");
+
+      // Red glow filter for impact source node
+      const glowFilter = defs.append("filter")
+        .attr("id", "impact-glow")
+        .attr("x", "-50%").attr("y", "-50%")
+        .attr("width", "200%").attr("height", "200%");
+      glowFilter.append("feGaussianBlur")
+        .attr("in", "SourceGraphic")
+        .attr("stdDeviation", "4")
+        .attr("result", "blur");
+      glowFilter.append("feFlood")
+        .attr("flood-color", "#ef4444")
+        .attr("flood-opacity", "0.6")
+        .attr("result", "color");
+      glowFilter.append("feComposite")
+        .attr("in", "color")
+        .attr("in2", "blur")
+        .attr("operator", "in")
+        .attr("result", "glow");
+      const glowMerge = glowFilter.append("feMerge");
+      glowMerge.append("feMergeNode").attr("in", "glow");
+      glowMerge.append("feMergeNode").attr("in", "SourceGraphic");
 
       // One marker per criticality color
       (["critical", "high", "medium", "low"] as const).forEach((crit) => {
@@ -340,9 +364,16 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
       const svg = d3.select(svgRef.current);
 
       if (!impactResult) {
-        // Reset all opacities
-        svg.selectAll(".nodes g").attr("opacity", 1);
-        svg.selectAll(".edges line").attr("opacity", 1);
+        // Reset all styles
+        svg.selectAll(".nodes g")
+          .attr("opacity", 1)
+          .attr("filter", null);
+        svg.selectAll(".nodes g :first-child")
+          .attr("stroke", function () { return d3.select(this).attr("data-original-stroke") || d3.select(this).attr("stroke"); })
+          .attr("stroke-width", 2.5);
+        svg.selectAll(".edges line")
+          .attr("opacity", 1)
+          .attr("stroke", function () { return d3.select(this).attr("data-original-stroke") || d3.select(this).attr("stroke"); });
         svg.selectAll(".edge-labels text").attr("opacity", 1);
         svg.selectAll(".labels text").attr("opacity", 1);
         return;
@@ -350,47 +381,65 @@ const ServiceGraphComponent = forwardRef<ServiceGraphHandle, ServiceGraphProps>(
 
       const affected = new Set(impactResult.allAffected);
       affected.add(impactResult.sourceId);
+      const hopDistance = impactResult.hopDistance ?? {};
 
-      // Dim unaffected nodes
-      svg.selectAll<SVGGElement, SimNode>(".nodes g")
-        .attr("opacity", (d) => (affected.has(d.id) ? 1 : 0.15));
+      // --- Nodes ---
+      svg.selectAll<SVGGElement, SimNode>(".nodes g").each(function (d) {
+        const el = d3.select(this);
+        const shape = el.select(":first-child");
 
-      // Dim unaffected edges
-      svg.selectAll<SVGLineElement, SimEdge>(".edges line")
-        .attr("opacity", (d) => {
-          const srcId = typeof d.source === "string" ? d.source : d.source.id;
-          const tgtId = typeof d.target === "string" ? d.target : d.target.id;
-          return affected.has(srcId) && affected.has(tgtId) ? 1 : 0.15;
-        });
+        // Store original stroke for reset
+        if (!shape.attr("data-original-stroke")) {
+          shape.attr("data-original-stroke", shape.attr("stroke"));
+        }
 
-      // Dim unaffected edge labels
+        if (d.id === impactResult.sourceId) {
+          // Source node: red glow + red stroke
+          el.attr("opacity", 1).attr("filter", "url(#impact-glow)");
+          shape.attr("stroke", "#ef4444").attr("stroke-width", 4);
+        } else if (affected.has(d.id)) {
+          // Affected node: colored stroke by hop distance
+          const hop = hopDistance[d.id] ?? 3;
+          el.attr("opacity", 1).attr("filter", null);
+          shape.attr("stroke", getHopColor(hop)).attr("stroke-width", 3.5);
+        } else {
+          // Unaffected node: dim + grayscale
+          el.attr("opacity", IMPACT_DIM_OPACITY).attr("filter", "grayscale(1)");
+          shape.attr("stroke-width", 2.5);
+        }
+      });
+
+      // --- Edges ---
+      svg.selectAll<SVGLineElement, SimEdge>(".edges line").each(function (d) {
+        const el = d3.select(this);
+        if (!el.attr("data-original-stroke")) {
+          el.attr("data-original-stroke", el.attr("stroke"));
+        }
+
+        const srcId = typeof d.source === "string" ? d.source : d.source.id;
+        const tgtId = typeof d.target === "string" ? d.target : d.target.id;
+        const bothAffected = affected.has(srcId) && affected.has(tgtId);
+
+        if (bothAffected) {
+          const maxHop = Math.max(hopDistance[srcId] ?? 0, hopDistance[tgtId] ?? 0);
+          el.attr("opacity", 1).attr("stroke", getHopColor(maxHop));
+        } else {
+          el.attr("opacity", IMPACT_DIM_OPACITY)
+            .attr("stroke", el.attr("data-original-stroke") || el.attr("stroke"));
+        }
+      });
+
+      // --- Edge labels ---
       svg.selectAll<SVGTextElement, SimEdge>(".edge-labels text")
         .attr("opacity", (d) => {
           const srcId = typeof d.source === "string" ? d.source : d.source.id;
           const tgtId = typeof d.target === "string" ? d.target : d.target.id;
-          return affected.has(srcId) && affected.has(tgtId) ? 1 : 0.15;
+          return affected.has(srcId) && affected.has(tgtId) ? 1 : IMPACT_DIM_OPACITY;
         });
 
-      // Dim unaffected labels
+      // --- Node labels ---
       svg.selectAll<SVGTextElement, SimNode>(".labels text")
-        .attr("opacity", (d) => (affected.has(d.id) ? 1 : 0.15));
-
-      // Pulse the source node
-      svg.selectAll<SVGGElement, SimNode>(".nodes g")
-        .filter((d) => d.id === impactResult.sourceId)
-        .select(":first-child")
-        .transition()
-        .duration(400)
-        .attr("stroke-width", 5)
-        .transition()
-        .duration(400)
-        .attr("stroke-width", 2.5)
-        .transition()
-        .duration(400)
-        .attr("stroke-width", 5)
-        .transition()
-        .duration(400)
-        .attr("stroke-width", 2.5);
+        .attr("opacity", (d) => (affected.has(d.id) ? 1 : IMPACT_DIM_OPACITY));
     }, [impactResult]);
 
     return (

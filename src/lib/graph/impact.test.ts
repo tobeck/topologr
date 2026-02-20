@@ -83,4 +83,22 @@ describe("analyzeImpact", () => {
     const result = analyzeImpact("b", edges);
     expect(result.allAffected).not.toContain("b");
   });
+
+  it("tracks hop distance for each affected service", () => {
+    // A → B → C → D
+    const edges = [
+      makeEdge("a", "b"),
+      makeEdge("b", "c"),
+      makeEdge("c", "d"),
+    ];
+
+    const result = analyzeImpact("d", edges);
+    expect(result.hopDistance).toEqual({ c: 1, b: 2, a: 3 });
+  });
+
+  it("returns empty hopDistance for leaf service", () => {
+    const edges = [makeEdge("a", "b")];
+    const result = analyzeImpact("a", edges);
+    expect(result.hopDistance).toEqual({});
+  });
 });

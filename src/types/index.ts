@@ -137,4 +137,6 @@ export interface ImpactResult {
   impactChain: Record<string, string[]>;
   /** Highest criticality among affected connections */
   maxCriticality: Criticality;
+  /** Hop distance from source for each affected service */
+  hopDistance: Record<string, number>;
 }

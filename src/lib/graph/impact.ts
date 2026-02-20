@@ -46,22 +46,24 @@ export function analyzeImpact(
   const visited = new Set<string>();
   const directDependents: string[] = [];
   const impactChain: Record<string, string[]> = {};
+  const hopDistance: Record<string, number> = {};
   let maxCriticality: Criticality = "low";
 
-  // BFS from the failed service
-  const queue: string[] = [serviceId];
+  // BFS from the failed service — queue entries are [serviceId, depth]
+  const queue: [string, number][] = [[serviceId, 0]];
   visited.add(serviceId);
 
   while (queue.length > 0) {
-    const current = queue.shift()!;
+    const [current, depth] = queue.shift()!;
     const dependents = reverseMap.get(current) ?? [];
     const affectedNeighbors: string[] = [];
 
     for (const { neighbor, criticality } of dependents) {
       if (visited.has(neighbor)) continue;
       visited.add(neighbor);
-      queue.push(neighbor);
+      queue.push([neighbor, depth + 1]);
       affectedNeighbors.push(neighbor);
+      hopDistance[neighbor] = depth + 1;
 
       // Track direct dependents (first hop only)
       if (current === serviceId) {
@@ -88,5 +90,6 @@ export function analyzeImpact(
     allAffected: Array.from(visited),
     impactChain,
     maxCriticality,
+    hopDistance,
   };
 }
