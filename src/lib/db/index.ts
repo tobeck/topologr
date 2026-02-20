@@ -2,7 +2,7 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 
-const DATABASE_URL = process.env.DATABASE_URL ?? "./servicemap.db";
+const DATABASE_URL = process.env.DATABASE_URL ?? "./topologr.db";
 
 const sqlite = new Database(DATABASE_URL);
 

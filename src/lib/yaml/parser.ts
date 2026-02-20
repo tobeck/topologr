@@ -12,7 +12,7 @@ export interface ParseError {
 }
 
 /**
- * Parse and validate a YAML string into a ServiceMap document.
+ * Parse and validate a YAML string into a Topologr document.
  * Returns either the validated document or a list of human-readable errors.
  */
 export function parseServiceYAML(input: string): ParseResult | ParseError {

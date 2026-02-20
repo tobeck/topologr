@@ -1,4 +1,4 @@
-# Example ServiceMap definition
+# Example Topologr definition
 # This models a typical web application stack
 
 services:

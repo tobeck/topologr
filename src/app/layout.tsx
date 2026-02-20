@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ServiceMap",
+  title: "Topologr",
   description: "Open-source service architecture documentation",
 };
 

@@ -22,7 +22,7 @@ export function Sidebar() {
     <aside className="flex h-full w-56 flex-col border-r bg-muted/40">
       <div className="border-b px-4 py-4">
         <Link href="/" className="text-lg font-semibold tracking-tight">
-          ServiceMap
+          Topologr
         </Link>
       </div>
 
