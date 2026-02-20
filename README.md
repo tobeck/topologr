@@ -1,13 +1,19 @@
-# ServiceMap
+# Topologr
 
-Open-source service architecture documentation tool. Define your infrastructure in YAML, visualize it as an interactive dependency graph.
+[![CI](https://github.com/tobeck/topologr/actions/workflows/ci.yml/badge.svg)](https://github.com/tobeck/topologr/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-## Features (MVP)
-- **YAML-first:** Define services and connections as code
-- **Interactive graph:** D3 force-directed visualization with zoom, pan, and click-to-inspect
-- **Dependency metadata:** Ports, protocols, SLAs, criticality, auth methods
-- **Impact analysis:** Select a service → see the blast radius if it goes down
-- **Self-hostable:** SQLite + Next.js standalone, no external dependencies
+Open-source, self-hostable service architecture documentation tool. Define your infrastructure in YAML, visualize it as an interactive dependency graph.
+
+## Features
+
+- **YAML-first service definitions** — define services and connections as code
+- **Interactive D3 graph** — force-directed visualization with zoom, pan, and click-to-inspect
+- **Dependency metadata** — ports, protocols, SLAs, criticality, auth methods, ownership
+- **Impact analysis** — hop-distance coloring and blast radius visualization when a service goes down
+- **Services table** — filterable list with inline impact analysis
+- **YAML import** — via the UI or REST API
+- **Self-hostable** — SQLite + Next.js, no external dependencies
 
 ## Quick Start
 
