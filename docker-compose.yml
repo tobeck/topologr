@@ -1,0 +1,12 @@
+services:
+  topologr:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - topologr-data:/data
+    environment:
+      - DATABASE_URL=/data/topologr.db
+
+volumes:
+  topologr-data:

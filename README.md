@@ -30,6 +30,19 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Deployment (Docker)
+
+```bash
+docker compose up --build
+```
+
+This starts Topologr at [http://localhost:3000](http://localhost:3000) with a persistent SQLite volume.
+
+**Notes:**
+- Data is stored in a Docker volume (`topologr-data`). Back it up by copying the SQLite file from the volume.
+- SQLite limits you to a single replica. For multi-instance deployments, swap to PostgreSQL.
+- The container runs `drizzle-kit push` on startup to apply schema migrations automatically.
+
 ## Defining Services
 
 Create a YAML file (see `examples/web-app-stack.yaml`):
