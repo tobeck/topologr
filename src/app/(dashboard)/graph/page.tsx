@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { Suspense, useState, useRef, useCallback, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ServiceGraphClient } from "@/components/graph/ServiceGraph.client";
 import { GraphControls } from "@/components/graph/GraphControls";
@@ -11,6 +11,23 @@ import type { ServiceGraphHandle } from "@/components/graph/ServiceGraph";
 import type { GraphNode, GraphEdge, ImpactResult } from "@/types";
 
 export default function GraphPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted-foreground/20 border-t-primary" />
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <GraphPageContent />
+    </Suspense>
+  );
+}
+
+function GraphPageContent() {
   const { graph, isLoading, error, refetch } = useGraphData();
   const graphRef = useRef<ServiceGraphHandle>(null);
   const searchParams = useSearchParams();
