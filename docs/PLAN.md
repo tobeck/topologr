@@ -42,3 +42,11 @@
 - [ ] Changelog/audit log of changes
 - [ ] Playwright E2E tests in CI
 - [ ] Automated releases (semantic-release or similar)
+
+## Stretch Goals
+- [ ] **Service health status** — display live health state on graph nodes (green/red/unknown)
+  - YAML config: optional `health_check` block per service (url, timeout, interval)
+  - Separate backend process/sidecar that polls health checks on an interval, writes results to DB
+  - Alternative: Prometheus integration — query PromQL to derive health status instead of direct HTTP checks
+  - Topologr reads health state from DB and renders it in the graph/table
+  - Avoids coupling polling logic into the Next.js app
