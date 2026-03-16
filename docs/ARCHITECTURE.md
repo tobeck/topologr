@@ -1,7 +1,7 @@
-# ServiceMap Architecture
+# Topologr Architecture
 
 ## Overview
-ServiceMap is a YAML-first service architecture documentation tool. Users define their infrastructure as YAML files, import them, and get an interactive dependency graph with metadata.
+Topologr is a YAML-first service architecture documentation tool. Users define their infrastructure as YAML files, import them, and get an interactive dependency graph with metadata.
 
 ## Data Flow
 ```

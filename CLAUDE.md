@@ -1,35 +1,37 @@
-# ServiceMap - Service Architecture Documentation Tool
+# Topologr
 
 ## Project Overview
-ServiceMap is an open-source, self-hostable service architecture documentation tool. Users define services and their connections in YAML, and the app renders an interactive visual dependency map with metadata (ports, protocols, SLAs, criticality, ownership).
+Topologr is an open-source, self-hostable service architecture documentation tool. Users define services and their connections in YAML, and the app renders an interactive visual dependency map with metadata (ports, protocols, SLAs, criticality, ownership).
 
 **Stack:** Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui, D3.js (graph visualization), SQLite via Drizzle ORM.
 **Monorepo:** Single repo, no separate packages.
 
 ## Project Structure
 ```
-servicemap/
+topologr/
 ├── src/
 │   ├── app/              # Next.js App Router pages
 │   │   ├── (dashboard)/  # Main app layout group
-│   │   ├── api/          # Route handlers
-│   │   └── layout.tsx
+│   │   └── api/          # Route handlers
 │   ├── components/       # React components
 │   │   ├── ui/           # shadcn/ui primitives
 │   │   ├── graph/        # D3 graph visualization
-│   │   └── forms/        # Service/connection editors
+│   │   ├── import/       # YAML import UI
+│   │   ├── services/     # Service table & filters
+│   │   ├── impact/       # Impact analysis UI
+│   │   └── layout/       # App shell (sidebar)
 │   ├── lib/              # Shared utilities
 │   │   ├── db/           # Drizzle schema + queries
-│   │   ├── yaml/         # YAML parser/validator
-│   │   └── graph/        # Graph algorithms (impact analysis, etc.)
+│   │   ├── yaml/         # YAML parser/validator (Zod schemas)
+│   │   ├── graph/        # Graph algorithms (impact analysis)
+│   │   └── api/          # Shared API helpers (validation, errors, test utils)
 │   └── types/            # TypeScript type definitions
-├── schemas/              # JSON Schema for YAML validation
 ├── examples/             # Example YAML service definitions
 ├── drizzle/              # DB migrations
 ├── docs/                 # Project documentation
 │   ├── ARCHITECTURE.md   # System design decisions
-│   ├── PLAN.md           # Current sprint plan/checklist
-│   └── DECISIONS.md      # ADR log
+│   └── PLAN.md           # Current roadmap
+├── .github/              # CI workflow, issue/PR templates
 ├── public/
 ├── CLAUDE.md
 └── package.json
@@ -41,9 +43,15 @@ servicemap/
 - `npm run lint` — ESLint
 - `npm run typecheck` — TypeScript strict check
 - `npm run test` — Vitest unit tests
-- `npm run test:e2e` — Playwright E2E tests
+- `npm run test:coverage` — Vitest with coverage report
 - `npm run db:push` — Push Drizzle schema to SQLite
 - `npm run db:studio` — Open Drizzle Studio
+
+## Verification
+After making changes, always run:
+```bash
+npm run lint && npm run typecheck && npm run test
+```
 
 ## Code Style
 - ES modules only. No CommonJS.
@@ -75,7 +83,7 @@ servicemap/
 - Write tests alongside implementation. Test files live next to source: `foo.ts` → `foo.test.ts`.
 - Use Vitest for unit/integration. Playwright for E2E.
 - Test the YAML parser exhaustively—it's the primary user input surface.
-- Don't mock DB in integration tests. Use an in-memory SQLite instance.
+- Don't mock DB in integration tests. Use the in-memory SQLite helper from `src/lib/api/test-helpers.ts`.
 - Always run `npm run test` after making changes to verify nothing is broken.
 
 ## Git Workflow
@@ -87,9 +95,11 @@ servicemap/
 ## Key Files
 - `src/lib/db/schema.ts` — Drizzle schema (source of truth for data model)
 - `src/lib/yaml/parser.ts` — YAML → validated service graph
-- `src/lib/graph/impact.ts` — Dependency impact analysis algorithms
+- `src/lib/yaml/schemas.ts` — Zod validation schemas for YAML input
+- `src/lib/graph/impact.ts` — Dependency impact analysis (BFS)
+- `src/lib/api/validation.ts` — Zod schemas for API request validation
+- `src/lib/api/errors.ts` — Standardized API error responses
 - `src/components/graph/ServiceGraph.tsx` — Main D3 visualization component
-- `schemas/service-definition.json` — JSON Schema for YAML validation
 
 ## Common Pitfalls
 - D3 and React both want DOM control. Use `useRef` + `useEffect` for D3, never let React render SVG elements that D3 manages.

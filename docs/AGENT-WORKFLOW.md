@@ -2,7 +2,7 @@
 
 ## How This Project Is Designed for Claude Code
 
-This document explains the project structure decisions, agent patterns, and cost optimization strategies for developing ServiceMap with Claude Code.
+This document explains the project structure decisions, agent patterns, and cost optimization strategies for developing Topologr with Claude Code.
 
 ---
 
