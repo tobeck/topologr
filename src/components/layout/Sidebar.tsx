@@ -47,6 +47,17 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t px-4 py-3">
+        <a
+          href="/api/export"
+          download="topologr-export.yaml"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-accent-foreground"
+        >
+          <Download className="h-4 w-4" />
+          Export YAML
+        </a>
+      </div>
+
+      <div className="border-t px-4 py-3">
         <p className="mb-2 text-xs font-medium text-muted-foreground">
           Example YAML
         </p>
