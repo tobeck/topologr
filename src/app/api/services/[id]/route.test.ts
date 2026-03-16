@@ -23,7 +23,7 @@ function makeRequest(url: string, opts?: { method?: string; body?: unknown }) {
           headers: { "Content-Type": "application/json" },
         }
       : {}),
-  }) as any;
+  }) as unknown as import("next/server").NextRequest;
 }
 
 function seedService(id: string, name: string) {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { createTestDB, buildRequest } from "@/lib/api/test-helpers";
+import { createTestDB } from "@/lib/api/test-helpers";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import type * as schema from "@/lib/db/schema";
 
@@ -24,7 +24,7 @@ function makeRequest(url: string, opts?: { method?: string; body?: unknown }) {
           headers: { "Content-Type": "application/json" },
         }
       : {}),
-  }) as any;
+  }) as unknown as import("next/server").NextRequest;
 }
 
 describe("GET /api/services", () => {

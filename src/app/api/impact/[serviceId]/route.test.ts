@@ -15,7 +15,7 @@ vi.mock("@/lib/db", () => ({
 const { GET } = await import("./route");
 
 function makeRequest(url: string) {
-  return new Request(`http://localhost:3000${url}`) as any;
+  return new Request(`http://localhost:3000${url}`) as unknown as import("next/server").NextRequest;
 }
 
 function seedGraph() {

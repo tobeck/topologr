@@ -19,7 +19,7 @@ function makeRequest(body: unknown) {
     method: "POST",
     body: JSON.stringify(body),
     headers: { "Content-Type": "application/json" },
-  }) as any;
+  }) as unknown as import("next/server").NextRequest;
 }
 
 const validYAML = `

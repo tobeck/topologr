@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         .run();
     });
 
-    transact;
+    void transact;
 
     return apiSuccess(
       {
