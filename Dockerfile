@@ -14,6 +14,11 @@ RUN npm run build
 
 # Stage 3: Production runtime
 FROM node:20-alpine AS runtime
+
+LABEL org.opencontainers.image.source="https://github.com/tobeck/topologr"
+LABEL org.opencontainers.image.description="Open-source, self-hostable service architecture documentation tool"
+LABEL org.opencontainers.image.licenses="MIT"
+
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 

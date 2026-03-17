@@ -91,6 +91,54 @@ New API endpoint and UI to export the current service graph from the database ba
 - **YAML library:** Use the existing `yaml` package (already used by the parser)
 - **No new dependencies needed**
 
+## GHCR Docker Image Publishing — Implementation Plan
+
+### Overview
+Automate building and publishing the Docker image to GitHub Container Registry (`ghcr.io/tobeck/topologr`) so users can `docker pull` instead of building from source.
+
+### Implementation Steps
+
+1. **Add `.github/workflows/docker-publish.yml`** — CI workflow
+   - **Triggers:**
+     - Push to `main` → tag image as `latest` and `sha-<short>`
+     - Push a version tag (`v*`) → tag image as `v1.2.3`, `1.2`, `1`, and `latest`
+   - **Steps:**
+     - Checkout code
+     - Set up Docker Buildx (multi-platform support)
+     - Log in to GHCR using `GITHUB_TOKEN` (no extra secrets needed)
+     - Extract metadata/tags with `docker/metadata-action`
+     - Build and push with `docker/build-push-action`
+     - Use GitHub Actions cache for Docker layers
+   - **Multi-platform:** Build for `linux/amd64` and `linux/arm64` (ARM users, e.g. Apple Silicon / Raspberry Pi)
+   - **Labeling:** Apply OCI labels (source, description, license) via metadata-action for discoverability
+
+2. **Add labels to `Dockerfile`** — OCI image metadata
+   - `org.opencontainers.image.source` → GitHub repo URL
+   - `org.opencontainers.image.description` → project description
+   - `org.opencontainers.image.licenses` → MIT
+   - These link the GHCR package page back to the repo and show metadata
+
+3. **Set package visibility** — Manual step after first push
+   - Go to the package settings on GitHub and set visibility to public
+   - Link the package to the repository for unified permissions
+
+4. **Update `README.md`** — Add GHCR pull instructions
+   - Add `docker pull ghcr.io/tobeck/topologr:latest` to the Docker section
+   - Show usage with `docker run` (port mapping, volume mount)
+   - Keep the existing `docker compose up --build` instructions for development
+
+5. **Update `docker-compose.yml`** — Reference published image
+   - Add an `image:` field pointing to `ghcr.io/tobeck/topologr:latest`
+   - Keep `build: .` as a commented-out alternative for local development
+
+### Key Decisions
+- **GHCR over Docker Hub:** Free for public repos, no extra account, image URL coupled to the repo
+- **`GITHUB_TOKEN` permissions:** Workflow needs `packages: write` — no manual secrets to configure
+- **Multi-platform:** `amd64` + `arm64` covers the vast majority of self-hosters
+- **Tag strategy:** Semantic version tags (`v1.2.3` → `1.2.3`, `1.2`, `1`) follow container ecosystem conventions
+- **No separate release workflow yet:** Image publishing is the first step; semantic-release can be layered on later
+- **Layer caching:** GitHub Actions cache keeps rebuild times fast
+
 ## Stretch Goals
 - [ ] **Service health status** — display live health state on graph nodes (green/red/unknown)
   - YAML config: optional `health_check` block per service (url, timeout, interval)

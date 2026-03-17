@@ -34,6 +34,21 @@ Open [http://localhost:3000](http://localhost:3000), then import one of the exam
 
 ## Docker Deployment
 
+Pull and run from GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/tobeck/topologr:latest
+docker run -p 3000:3000 -v topologr-data:/data ghcr.io/tobeck/topologr:latest
+```
+
+Or use Docker Compose:
+
+```bash
+docker compose up
+```
+
+To build from source instead, edit `docker-compose.yml` and uncomment the `build: .` line:
+
 ```bash
 docker compose up --build
 ```
@@ -42,6 +57,7 @@ This starts Topologr at [http://localhost:3000](http://localhost:3000) with a pe
 
 - Data is stored in a Docker volume (`topologr-data`). Back it up by copying the SQLite file from the volume.
 - The container runs `drizzle-kit push` on startup to apply schema migrations automatically.
+- Multi-platform images are published for `linux/amd64` and `linux/arm64`.
 - SQLite limits you to a single replica. For multi-instance deployments, swap to PostgreSQL.
 
 ## Defining Services
