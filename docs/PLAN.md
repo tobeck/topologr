@@ -41,7 +41,7 @@
 - [ ] NextAuth.js authentication
 - [ ] Changelog/audit log of changes
 - [x] Playwright E2E tests (navigation, import, services, graph)
-- [ ] Add E2E tests to CI workflow
+- [x] Add E2E tests to CI workflow
 - [ ] Automated releases (semantic-release or similar)
 
 ## YAML Export (DB → YAML) — Implementation Plan
