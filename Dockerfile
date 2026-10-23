@@ -1,19 +1,19 @@
 # Stage 1: Install dependencies
-FROM node:20-alpine AS deps
+FROM node:24-alpine AS deps
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Stage 2: Build the application
-FROM node:20-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
 # Stage 3: Production runtime
-FROM node:20-alpine AS runtime
+FROM node:24-alpine AS runtime
 
 LABEL org.opencontainers.image.source="https://github.com/tobeck/topologr"
 LABEL org.opencontainers.image.description="Open-source, self-hostable service architecture documentation tool"

@@ -28,7 +28,7 @@ What actually happened. Include error messages or screenshots if applicable.
 
 - **OS:** e.g., macOS 14, Ubuntu 22.04
 - **Browser:** e.g., Chrome 120, Firefox 121
-- **Node.js:** e.g., 20.10.0
+- **Node.js:** e.g., 24.11.0
 - **Deployment:** Docker / local dev
 
 ## YAML (if relevant)
